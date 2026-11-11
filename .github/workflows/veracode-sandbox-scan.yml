@@ -43,6 +43,7 @@ jobs:
       ruby_version: ${{ github.event.client_payload.user_config.ruby_version }}
       bundle_version: ${{ github.event.client_payload.user_config.bundle_version }}
       default_runs_on: ${{ github.event.client_payload.user_config.default_runs_on }}
+      source_scan: ${{ github.event.client_payload.user_config.source_scan }}
 
   sandbox_scan:
     needs: build
