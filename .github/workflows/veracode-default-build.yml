@@ -35,6 +35,9 @@ on:
       debug:
         required: false
         type: string
+      source_scan:
+        required: false
+        type: string
 
 jobs:
   build-prepare:
@@ -115,6 +118,10 @@ jobs:
 
           if [[ "${{ inputs.debug }}" == "true" ]]; then
             PACKAGE_CMD="$PACKAGE_CMD --verbose"
+          fi
+
+          if [[ "${{ inputs.source_scan }}" == "true" ]]; then
+            PACKAGE_CMD="$PACKAGE_CMD --java-source --csharp-source"
           fi
 
           echo "Running: $PACKAGE_CMD"
@@ -276,6 +283,11 @@ jobs:
 
           if ("${{ inputs.debug }}" -eq "true") {
             $packageArgs += "--verbose"
+          }
+
+          if ("${{ inputs.source_scan }}" -eq "true") {
+            $packageArgs += "--java-source"
+            $packageArgs += "--csharp-source"
           }
 
           if ("${{ inputs.event_name }}" -like "*pipeline*") {
