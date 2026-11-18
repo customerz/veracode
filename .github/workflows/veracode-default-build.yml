@@ -121,7 +121,10 @@ jobs:
           fi
 
           if [[ "${{ inputs.source_scan }}" == "true" ]]; then
-            PACKAGE_CMD="$PACKAGE_CMD --java-source --csharp-source"
+            case "${{ inputs.event_name }}" in
+              java-*)    PACKAGE_CMD="$PACKAGE_CMD --java-source" ;;
+              dot-net-*) PACKAGE_CMD="$PACKAGE_CMD --csharp-source" ;;
+            esac
           fi
 
           echo "Running: $PACKAGE_CMD"
@@ -286,8 +289,8 @@ jobs:
           }
 
           if ("${{ inputs.source_scan }}" -eq "true") {
-            $packageArgs += "--java-source"
-            $packageArgs += "--csharp-source"
+            if ("${{ inputs.event_name }}" -like "java-*") { $packageArgs += "--java-source" }
+            elseif ("${{ inputs.event_name }}" -like "dot-net-*") { $packageArgs += "--csharp-source" }
           }
 
           if ("${{ inputs.event_name }}" -like "*pipeline*") {
