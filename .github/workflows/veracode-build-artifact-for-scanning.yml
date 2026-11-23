@@ -36,9 +36,10 @@ on:
       debug:
         required: false
         type: string
-      source_scan:
+      package_source:
         required: false
         type: string
+        default: "false"
 
 jobs:
   build:
@@ -56,7 +57,7 @@ jobs:
       event_name: ${{ inputs.event_name }}
       default_runs_on: ${{ inputs.default_runs_on }}
       debug: ${{ inputs.debug }}
-      source_scan: ${{ inputs.source_scan }}
+      package_source: ${{ inputs.package_source }}
 
   build-php-package:
     if: ${{ inputs.event_name == 'php-pipeline-scan' || inputs.event_name == 'php-policy-scan'  || inputs.event_name == 'php-sandbox-scan'}}

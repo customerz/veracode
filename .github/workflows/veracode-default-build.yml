@@ -35,9 +35,10 @@ on:
       debug:
         required: false
         type: string
-      source_scan:
+      package_source:
         required: false
         type: string
+        default: "false"
 
 jobs:
   build-prepare:
@@ -45,11 +46,28 @@ jobs:
     name: Build preparation
     outputs:
       runner_os: ${{ steps.identify_runner_os.outputs.runner_os }}
+      source_flag: ${{ steps.select_source_flag.outputs.source_flag }}
     steps:
       - name: Identify the runner OS
         id: identify_runner_os
         shell: bash
         run: echo "runner_os=${{ runner.os }}" >> $GITHUB_OUTPUT
+
+      - name: Select source packaging flag
+        id: select_source_flag
+        shell: bash
+        env:
+          PACKAGE_SOURCE: ${{ inputs.package_source }}
+          EVENT_NAME: ${{ inputs.event_name }}
+        run: |
+          source_flag=""
+          if [[ "$PACKAGE_SOURCE" == "true" ]]; then
+            case "$EVENT_NAME" in
+              java-*) source_flag="--java-source" ;;
+              dot-net-*) source_flag="--csharp-source" ;;
+            esac
+          fi
+          echo "source_flag=$source_flag" >> "$GITHUB_OUTPUT"
 
   build-linux:
     needs: build-prepare
@@ -77,6 +95,8 @@ jobs:
       - name: Package the application
         id: application_package_linux
         shell: bash
+        env:
+          SOURCE_FLAG: ${{ needs.build-prepare.outputs.source_flag }}
         run: |
           if [[ ! -z "${{ inputs.build_predependency_command }}" ]]; then
             echo "Executing Pre-Build Dependency.."
@@ -112,19 +132,16 @@ jobs:
           fi
           PACKAGE_CMD="veracode package --source source-code --output veracode-artifacts --trust"
 
+          if [[ -n "$SOURCE_FLAG" ]]; then
+            PACKAGE_CMD="$PACKAGE_CMD $SOURCE_FLAG"
+          fi
+
           if [[ "${{ inputs.event_name }}" =~ "pipeline" ]]; then
             PACKAGE_CMD="$PACKAGE_CMD --skip-packagers sql,cobol"
           fi
 
           if [[ "${{ inputs.debug }}" == "true" ]]; then
             PACKAGE_CMD="$PACKAGE_CMD --verbose"
-          fi
-
-          if [[ "${{ inputs.source_scan }}" == "true" ]]; then
-            case "${{ inputs.event_name }}" in
-              java-*)    PACKAGE_CMD="$PACKAGE_CMD --java-source" ;;
-              dot-net-*) PACKAGE_CMD="$PACKAGE_CMD --csharp-source" ;;
-            esac
           fi
 
           echo "Running: $PACKAGE_CMD"
@@ -274,6 +291,8 @@ jobs:
       - name: Run Veracode CLI Package
         id: application_package_windows
         shell: pwsh
+        env:
+          SOURCE_FLAG: ${{ needs.build-prepare.outputs.source_flag }}
         run: |
           $working_path = (Get-Location).Path
           "working_dir=$working_path" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
@@ -284,13 +303,10 @@ jobs:
             "--trust"
           )
 
+          if ($env:SOURCE_FLAG) { $packageArgs += $env:SOURCE_FLAG }
+
           if ("${{ inputs.debug }}" -eq "true") {
             $packageArgs += "--verbose"
-          }
-
-          if ("${{ inputs.source_scan }}" -eq "true") {
-            if ("${{ inputs.event_name }}" -like "java-*") { $packageArgs += "--java-source" }
-            elseif ("${{ inputs.event_name }}" -like "dot-net-*") { $packageArgs += "--csharp-source" }
           }
 
           if ("${{ inputs.event_name }}" -like "*pipeline*") {

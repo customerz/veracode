@@ -43,7 +43,7 @@ jobs:
       ruby_version: ${{ github.event.client_payload.user_config.ruby_version }}
       bundle_version: ${{ github.event.client_payload.user_config.bundle_version }}
       default_runs_on: ${{ github.event.client_payload.user_config.default_runs_on }}
-      source_scan: ${{ github.event.client_payload.user_config.source_scan }}
+      package_source: ${{ toJSON(github.event.client_payload.user_config.package_source) == 'true' && 'true' || 'false' }}
 
   sandbox_scan:
     needs: build
@@ -63,7 +63,7 @@ jobs:
 
       # run the policy scan action
       - name: Veracode Upload and Scan Action Step
-        uses: veracode/uploadandscan-action@v0.2.3
+        uses: veracode/uploadandscan-action@v0.2.4
         id: upload_and_scan
         with:
           appname: ${{ github.event.client_payload.user_config.profile_name }}

@@ -108,7 +108,7 @@ jobs:
       bundle_version: ${{ github.event.client_payload.user_config.bundle_version }}
       default_runs_on: ${{ github.event.client_payload.user_config.default_runs_on }}
       debug: ${{ github.event.client_payload.user_config.debug }}
-      source_scan: ${{ github.event.client_payload.user_config.source_scan }}
+      package_source: ${{ toJSON(github.event.client_payload.user_config.package_source) == 'true' && 'true' || 'false' }}
 
   pipeline_scan:
     # needs the build step before this job will start running
