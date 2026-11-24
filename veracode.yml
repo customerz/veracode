@@ -33,7 +33,7 @@ veracode_static_scan:
   # If the create_issue is set to true, GitHub Issues will be created for static findings.
   create_issue: false
   # SDEVX-8201 test: package Java and C# as source instead of building binaries.
-  package_source: false
+  package_source: true
   # If the trigger is set to true, a scan is triggered when you create an issue containing the commands value or add a comment containing the commands value to an issue.
   # Syntax to be used - COMMANDS_VALUE [branch: BRANCH_NAME]
   issues:
@@ -100,9 +100,3 @@ veracode_iac_secrets_scan:
 packaging:
   source-code-scanning:
     enabled: true
-
-# SDEVX-8201 test: run the static scan build on a Windows runner
-actions:
-  veracode_static_scan:
-    build:
-      runs_on: windows-latest
